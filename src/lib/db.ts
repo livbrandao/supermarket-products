@@ -1,6 +1,15 @@
 import { Brand, Product } from "./types";
 import { v4 as uuidv4 } from "uuid";
 
+// URLs de imagens de placeholder
+const PLACEHOLDER_IMAGES = {
+  COCA: "https://placehold.co/400x400/eef/fff?text=Coca-Cola",
+  NESCAU: "https://placehold.co/400x400/ffe/fff?text=Nescau",
+  OMO: "https://placehold.co/400x400/eff/fff?text=OMO",
+  DORITOS: "https://placehold.co/400x400/fef/fff?text=Doritos",
+  DEL_VALLE: "https://placehold.co/400x400/fee/fff?text=Del+Valle",
+};
+
 // Dados para marcas e produtos
 const initialBrands: Brand[] = [
   { id: uuidv4(), name: "Coca-Cola" },
@@ -17,8 +26,7 @@ const initialProducts: Product[] = [
     price: 9.99,
     description: "Refrigerante Coca-Cola garrafa 2 litros",
     brandId: initialBrands[0].id,
-    image:
-      "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAWAAAACuCAYAAAAI9Nc8AAAdDUlEQVR4nO3df3BT54Hu8a+NMFFAJJYTQaVgw6KkCnV6MQWxOI1pMcGzA0zclubW3YZ2fOem05tOyfayvWxnspkMNy1L2GzIJJ2J/3BnSBunjds6G5isszU0TjCDSLAvOERp7MWikQsCy4ACBxsh3T/k35JsQWyODc9nxoPl856j95Xxo1fv+55zss6ePRsnjXg8edOuXbv45JNP0u0iIiIZyk63IVX4fvDBBw",
+    image: PLACEHOLDER_IMAGES.COCA,
   },
   {
     id: uuidv4(),
@@ -26,7 +34,7 @@ const initialProducts: Product[] = [
     price: 8.5,
     description: "Achocolatado em pó Nescau lata 400g",
     brandId: initialBrands[1].id,
-    image: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJYAAACW...",
+    image: PLACEHOLDER_IMAGES.NESCAU,
   },
   {
     id: uuidv4(),
@@ -34,7 +42,7 @@ const initialProducts: Product[] = [
     price: 15.75,
     description: "Sabão em Pó OMO Multiação pacote 1kg",
     brandId: initialBrands[3].id,
-    image: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJYAAACW...",
+    image: PLACEHOLDER_IMAGES.OMO,
   },
   {
     id: uuidv4(),
@@ -42,7 +50,7 @@ const initialProducts: Product[] = [
     price: 12.99,
     description: "Salgadinho Doritos sabor queijo nacho 140g",
     brandId: initialBrands[4].id,
-    image: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJYAAACW...",
+    image: PLACEHOLDER_IMAGES.DORITOS,
   },
   {
     id: uuidv4(),
@@ -50,7 +58,7 @@ const initialProducts: Product[] = [
     price: 6.99,
     description: "Suco de Laranja Del Valle 1L",
     brandId: initialBrands[4].id,
-    image: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJYAAACW...",
+    image: PLACEHOLDER_IMAGES.DEL_VALLE,
   },
 ];
 
@@ -75,6 +83,22 @@ const saveToStorage = <T>(key: string, data: T): void => {
 let brands: Brand[] = loadFromStorage("brands", initialBrands);
 let products: Product[] = loadFromStorage("products", initialProducts);
 
+// Função para comprimir dados base64 de imagens
+// Esta função simulará uma compressão mantendo apenas os primeiros 50% dos dados
+const compressImageData = (base64Data: string): string => {
+  // Se já for uma URL, não comprime
+  if (base64Data.startsWith("http")) {
+    return base64Data;
+  }
+
+  // Se for uma string base64 muito grande (> 1MB), converte para URL de placeholder
+  if (base64Data.length > 1024 * 1024) {
+    return `https://placehold.co/400x400/eee/fff?text=Produto`;
+  }
+
+  return base64Data;
+};
+
 // Exporta as funções para manipulação de produtos e marcas
 export const getAllBrands = (): Brand[] => {
   return [...brands];
@@ -96,6 +120,8 @@ export const createProduct = (product: Omit<Product, "id">): Product => {
   const newProduct = {
     ...product,
     id: uuidv4(),
+    // Comprime a imagem se existir
+    image: product.image ? compressImageData(product.image) : undefined,
   };
 
   // Verifica unicidade
@@ -135,11 +161,17 @@ export const updateProduct = (
     }
   }
 
-  products[index] = {
+  // Comprime a imagem se estiver sendo atualizada
+  const updatedProduct = {
     ...products[index],
     ...product,
   };
 
+  if (product.image) {
+    updatedProduct.image = compressImageData(product.image);
+  }
+
+  products[index] = updatedProduct;
   saveToStorage("products", products); // Salva no localStorage
   return products[index];
 };
