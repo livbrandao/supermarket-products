@@ -15,6 +15,7 @@ import Table from "./ui/Table";
 import ProductForm from "./ProductForm";
 import toast from "react-hot-toast";
 import Pagination from "./Pagination";
+import Image from "next/image";
 
 const ProductList: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
@@ -117,9 +118,28 @@ const ProductList: React.FC = () => {
 
   const columns = [
     {
+      header: "Imagem",
+      accessor: (product: Product) => (
+        <div className="w-16 h-16 relative flex-shrink-0">
+          {product.image ? (
+            <Image
+              src={product.image}
+              alt={product.name}
+              className="w-full h-full object-cover rounded-md"
+            />
+          ) : (
+            <div className="w-16 h-16 bg-gray-200 rounded-md flex items-center justify-center text-gray-400">
+              Sem imagem
+            </div>
+          )}
+        </div>
+      ),
+      width: "10%",
+    },
+    {
       header: "Nome",
       accessor: "name" as keyof Product,
-      width: "25%",
+      width: "20%",
     },
     {
       header: "Preço",
@@ -129,7 +149,7 @@ const ProductList: React.FC = () => {
     {
       header: "Descrição",
       accessor: (product: Product) => product.description || "-",
-      width: "40%",
+      width: "35%",
     },
     {
       header: "Ações",

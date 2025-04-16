@@ -127,7 +127,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
     const files = e.target.files;
     if (files && files.length > 0) {
       const file = files[0];
-      setImageFile(file);
+      setImageFile(file); // salva o arquivo
       setSelectedFileName(file.name);
       setErrors((prev) => ({ ...prev, image: "" }));
 
