@@ -309,7 +309,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
           </div>
           <label
             htmlFor="image"
-            className="cursor-pointer px-4 py-1 bg-[var(--blue-pastel)] text-white rounded-md hover:bg-[var(--blue)] transition-colors"
+            className="cursor-pointer text-xs md:text-lg px-2 md:px-4 py-1 bg-[var(--blue-pastel)] text-white rounded-md hover:bg-[var(--blue)] transition-colors ml-2 md:ml-0 text-center"
           >
             Escolher arquivo
           </label>

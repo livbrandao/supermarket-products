@@ -185,7 +185,7 @@ const ProductList: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+      <div className="flex flex-col sm:flex-row   justify-between items-start md:items-center gap-4">
         <div className="w-full sm:w-64">
           <Input
             id="search"
@@ -193,6 +193,7 @@ const ProductList: React.FC = () => {
             value={searchTerm}
             onChange={(e) => handleSearch(e.target.value)}
             placeholder="Digite o nome do produto"
+            className="bg-white"
           />
         </div>
         <Link href="/cadastro">
