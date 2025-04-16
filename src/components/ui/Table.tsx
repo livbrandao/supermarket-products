@@ -22,14 +22,14 @@ function Table<T>({
   onRowClick,
 }: TableProps<T>) {
   return (
-    <div className="w-full overflow-x-auto bg-white rounded-md shadow">
+    <div className="w-full overflow-x-auto bg-white rounded-md shadow-2xl">
       <table className="min-w-full divide-y divide-[var(--gray-border)]">
-        <thead className="bg-[var(--gray)]">
+        <thead className="bg-[var(--gray-dark-more)]">
           <tr>
             {columns.map((column, index) => (
               <th
                 key={index}
-                className="px-6 py-3 text-left text-sm font-medium text-[var(--blue)] tracking-wider"
+                className="px-6 py-3 text-left text-sm font-medium text-white tracking-wider uppercase"
                 style={{ width: column.width }}
               >
                 {column.header}

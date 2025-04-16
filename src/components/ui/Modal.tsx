@@ -9,6 +9,7 @@ interface ModalProps {
   children: React.ReactNode;
   footer?: React.ReactNode;
   maxWidth?: string;
+  maxHeigth?: string;
 }
 
 const Modal: React.FC<ModalProps> = ({
@@ -42,24 +43,25 @@ const Modal: React.FC<ModalProps> = ({
   }
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
-      <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-        <div className="fixed inset-0 transition-opacity" onClick={onClose}>
-          <div className="absolute inset-0 bg-black opacity-50"></div>
-        </div>
+    <div className="fixed  inset-14 rounded-2xl ">
+      <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0 ">
+        <div
+          className="fixed inset-50 transition-shadow "
+          onClick={onClose}
+        ></div>
 
         <span className="hidden sm:inline-block sm:align-middle sm:h-screen">
           &#8203;
         </span>
 
         <div
-          className={`inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle ${maxWidth} w-full`}
+          className={`inline-block align-bottom bg-white rounded-lg text-left shadow-xl transform transition-all sm:my-8 sm:align-sub ${maxWidth} w-full border border-[var(--gray-border)]`}
           role="dialog"
           aria-modal="true"
           aria-labelledby="modal-headline"
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="flex justify-between items-center px-6 py-4 border-b border-[var(--gray-border)]">
+          <div className="flex justify-between items-center px-6 py-4 border-b border-[var(--gray-border)] ">
             <h3
               className="text-lg font-medium text-[var(--blue)]"
               id="modal-headline"
@@ -87,7 +89,9 @@ const Modal: React.FC<ModalProps> = ({
             </Button>
           </div>
 
-          <div className="px-6 py-4">{children}</div>
+          <div className="px-6 py-4 overflow-y-auto max-h-[calc(100vh-240px)] mr-2 my-1">
+            {children}
+          </div>
 
           {footer && (
             <div className="px-6 py-4 border-t border-[var(--gray-border)] bg-[var(--gray)] flex justify-end space-x-2">

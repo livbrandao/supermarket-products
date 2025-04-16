@@ -1,3 +1,4 @@
+import ProductList from "@/components/ProductList";
 import React from "react";
 
 export default function ProdutosPage() {
@@ -6,6 +7,7 @@ export default function ProdutosPage() {
       <h1 className="text-2xl font-bold text-[var(--blue)] mb-6">
         Catálogo de Produtos
       </h1>
+      <ProductList />
     </main>
   );
 }
