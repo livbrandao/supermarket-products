@@ -14,6 +14,7 @@ import Modal from "./ui/Modal";
 import Table from "./ui/Table";
 import ProductForm from "./ProductForm";
 import toast from "react-hot-toast";
+import Pagination from "./Pagination";
 
 const ProductList: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
@@ -21,9 +22,9 @@ const ProductList: React.FC = () => {
   const [filter, setFilter] = useState<ProductFilter>({
     name: "",
     page: 1,
-    limit: 10,
+    limit: 5,
   });
-
+  const [totalPages, setTotalPages] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -39,6 +40,7 @@ const ProductList: React.FC = () => {
       const response = await fetchProducts(filter);
       if (response.status === 200) {
         setProducts(response.data.data);
+        setTotalPages(response.data.totalPages);
       } else {
         console.error("Erro ao buscar produtos:", response.message);
       }
@@ -54,6 +56,12 @@ const ProductList: React.FC = () => {
     debouncedSearch(() => {
       setFilter((prev) => ({ ...prev, name: value, page: 1 }));
     }, value);
+  };
+
+  const handlePageChange = (newPage: number) => {
+    if (newPage > 0 && newPage <= totalPages) {
+      setFilter((prev) => ({ ...prev, page: newPage }));
+    }
   };
 
   const handleEditClick = (product: Product) => {
@@ -176,6 +184,14 @@ const ProductList: React.FC = () => {
         isLoading={isLoading}
         emptyMessage="Nenhum produto encontrado"
       />
+
+      {!isLoading && (
+        <Pagination
+          currentPage={filter.page}
+          totalPages={totalPages}
+          onPageChange={handlePageChange}
+        />
+      )}
 
       {selectedProduct && (
         <>
