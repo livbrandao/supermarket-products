@@ -43,12 +43,9 @@ const Modal: React.FC<ModalProps> = ({
   }
 
   return (
-    <div className="fixed  inset-14 rounded-2xl ">
+    <div className="fixed inset-14 rounded-2xl">
       <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0 ">
-        <div
-          className="fixed inset-50 transition-shadow "
-          onClick={onClose}
-        ></div>
+        <div className="fixed transition-shadow" onClick={onClose}></div>
 
         <span className="hidden sm:inline-block sm:align-middle sm:h-screen">
           &#8203;
