@@ -3,7 +3,7 @@ import React, { forwardRef } from "react";
 interface InputProps
   extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "id"> {
   id: string;
-  label: string;
+  label?: string;
   error?: string;
 }
 
@@ -13,9 +13,9 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
       <div className="mb-4">
         <label
           htmlFor={id}
-          className="block text-[var(--gray-dark-more)] font-medium mb-1"
+          className="block text-[var(--blue-dark)] font-medium mb-1"
         >
-          {label}
+          {label} <span className="text-red-500">{label ? "*" : ""}</span>
         </label>
         <input
           id={id}

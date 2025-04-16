@@ -13,7 +13,6 @@ export default function CadastroPage() {
       const response = await createNewProduct(productData);
 
       if (response.status === 201) {
-        toast.success("Produto cadastrado com sucesso!");
         router.push("/produtos");
       } else {
         toast.error(`Erro ao cadastrar produto: ${response.message}`);

@@ -15,11 +15,17 @@ import Table from "./ui/Table";
 import ProductForm from "./ProductForm";
 import toast from "react-hot-toast";
 import Pagination from "./Pagination";
-import Image from "next/image";
+import ImageWithFallback from "./ImageWithFallback";
+import ErrorPage from "./ErrorPage";
 
 const ProductList: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<{
+    hasError: boolean;
+    message?: string;
+    code?: number;
+  }>({ hasError: false });
   const [filter, setFilter] = useState<ProductFilter>({
     name: "",
     page: 1,
@@ -30,6 +36,7 @@ const ProductList: React.FC = () => {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isActionLoading, setIsActionLoading] = useState(false);
 
   useEffect(() => {
     loadProducts();
@@ -37,6 +44,8 @@ const ProductList: React.FC = () => {
 
   const loadProducts = async () => {
     setIsLoading(true);
+    setError({ hasError: false });
+
     try {
       const response = await fetchProducts(filter);
       if (response.status === 200) {
@@ -44,9 +53,19 @@ const ProductList: React.FC = () => {
         setTotalPages(response.data.totalPages);
       } else {
         console.error("Erro ao buscar produtos:", response.message);
+        setError({
+          hasError: true,
+          message: response.message || "Erro ao buscar produtos",
+          code: response.status,
+        });
       }
     } catch (error) {
       console.error("Erro ao buscar produtos:", error);
+      setError({
+        hasError: true,
+        message: "Erro de conexão. Verifique sua internet.",
+        code: 500,
+      });
     } finally {
       setIsLoading(false);
     }
@@ -78,6 +97,7 @@ const ProductList: React.FC = () => {
   const handleUpdateProduct = async (productData: any) => {
     if (!selectedProduct) return;
 
+    setIsActionLoading(true);
     try {
       const response = await updateExistingProduct(
         selectedProduct.id,
@@ -87,19 +107,21 @@ const ProductList: React.FC = () => {
       if (response.status === 200) {
         setIsEditModalOpen(false);
         loadProducts();
-        toast.success("Produto atualizado com sucesso!");
       } else {
         toast.error(`Erro ao atualizar produto: ${response.message}`);
       }
     } catch (error) {
       console.error("Erro ao atualizar produto:", error);
       toast.error("Ocorreu um erro ao atualizar o produto. Tente novamente.");
+    } finally {
+      setIsActionLoading(false);
     }
   };
 
   const handleDeleteProduct = async () => {
     if (!selectedProduct) return;
 
+    setIsActionLoading(true);
     try {
       const response = await deleteExistingProduct(selectedProduct.id);
 
@@ -113,26 +135,42 @@ const ProductList: React.FC = () => {
     } catch (error) {
       console.error("Erro ao excluir produto:", error);
       toast.error("Ocorreu um erro ao excluir o produto. Tente novamente.");
+    } finally {
+      setIsActionLoading(false);
     }
   };
+
+  // Se houver um erro, mostre a página de erro
+  if (error.hasError && !isLoading) {
+    return (
+      <ErrorPage
+        title="Erro ao carregar produtos"
+        message={
+          error.message || "Não foi possível carregar a lista de produtos."
+        }
+        code={error.code}
+        retry={loadProducts}
+      />
+    );
+  }
 
   const columns = [
     {
       header: "Imagem",
       accessor: (product: Product) => (
-        <div className="w-16 h-16 relative flex-shrink-0">
+        <div className="">
           {product.image ? (
-            <Image
+            <ImageWithFallback
               src={product.image}
               alt={product.name}
-              className="w-full h-full object-cover rounded-md"
               width={64}
               height={64}
+              className="w-full h-full"
             />
           ) : (
-            <div className="w-16 h-16 bg-gray-200 rounded-md flex items-center justify-center text-gray-400">
-              Sem imagem
-            </div>
+            <p className="bg-gray-200 rounded-md text-gray-500 text-xs text-center p-1">
+              Não contém imagem
+            </p>
           )}
         </div>
       ),
@@ -185,11 +223,16 @@ const ProductList: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row   justify-between items-start md:items-center gap-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start md:items-center gap-4">
         <div className="w-full sm:w-64">
+          <label
+            htmlFor="name"
+            className="block text-[var(--gray-dark-more)] font-medium mb-1"
+          >
+            Buscar produtos
+          </label>
           <Input
             id="search"
-            label="Buscar produtos"
             value={searchTerm}
             onChange={(e) => handleSearch(e.target.value)}
             placeholder="Digite o nome do produto"
@@ -220,17 +263,22 @@ const ProductList: React.FC = () => {
         <>
           <Modal
             isOpen={isDeleteModalOpen}
-            onClose={() => setIsDeleteModalOpen(false)}
+            onClose={() => !isActionLoading && setIsDeleteModalOpen(false)}
             title="Confirmar Exclusão"
             footer={
               <>
                 <Button
                   variant="outline"
                   onClick={() => setIsDeleteModalOpen(false)}
+                  disabled={isActionLoading}
                 >
                   Cancelar
                 </Button>
-                <Button variant="danger" onClick={handleDeleteProduct}>
+                <Button
+                  variant="danger"
+                  onClick={handleDeleteProduct}
+                  isLoading={isActionLoading}
+                >
                   Confirmar Exclusão
                 </Button>
               </>
@@ -247,7 +295,7 @@ const ProductList: React.FC = () => {
 
           <Modal
             isOpen={isEditModalOpen}
-            onClose={() => setIsEditModalOpen(false)}
+            onClose={() => !isActionLoading && setIsEditModalOpen(false)}
             title="Editar Produto"
             maxWidth="max-w-4xl"
           >
@@ -255,6 +303,7 @@ const ProductList: React.FC = () => {
               initialData={selectedProduct}
               onSubmit={handleUpdateProduct}
               isEditing={true}
+              isSubmitting={isActionLoading}
             />
           </Modal>
         </>

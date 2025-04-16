@@ -6,6 +6,7 @@ import React, { useState, useEffect } from "react";
 import Button from "./ui/Button";
 import Input from "./ui/Input";
 import toast from "react-hot-toast";
+import ErrorPage from "./ErrorPage";
 
 interface ProductFormProps {
   initialData?: {
@@ -18,8 +19,8 @@ interface ProductFormProps {
   };
   onSubmit: (data: any) => void;
   isEditing?: boolean;
+  isSubmitting?: boolean;
 }
-
 const ProductForm: React.FC<ProductFormProps> = ({
   initialData = {
     name: "",
@@ -30,12 +31,18 @@ const ProductForm: React.FC<ProductFormProps> = ({
   },
   onSubmit,
   isEditing = false,
+  isSubmitting = false,
 }) => {
   const [formData, setFormData] = useState(initialData);
   const [brands, setBrands] = useState<Brand[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [loadingBrands, setLoadingBrands] = useState(true);
+  const [loadError, setLoadError] = useState<{
+    hasError: boolean;
+    message?: string;
+  }>({ hasError: false });
   const [imagePreview, setImagePreview] = useState<string | undefined>(
     initialData.image
   );
@@ -43,20 +50,48 @@ const ProductForm: React.FC<ProductFormProps> = ({
     {}
   );
   const [selectedFileName, setSelectedFileName] = useState<string>("");
+  const [imageError, setImageError] = useState<string>("");
 
   useEffect(() => {
     const loadBrands = async () => {
-      const response = await fetchBrands();
-      if (response.status === 200) {
-        setBrands(response.data);
+      setLoadingBrands(true);
+      setLoadError({ hasError: false });
+
+      try {
+        const response = await fetchBrands();
+        if (response.status === 200) {
+          setBrands(response.data);
+        } else {
+          console.error("Erro ao buscar marcas:", response.message);
+          setLoadError({
+            hasError: true,
+            message: response.message || "Erro ao carregar marcas",
+          });
+        }
+      } catch (error) {
+        console.error("Erro ao buscar marcas:", error);
+        setLoadError({
+          hasError: true,
+          message: "Erro de conexão. Verifique sua internet.",
+        });
+      } finally {
+        setLoadingBrands(false);
       }
     };
 
     // Quando estiver editando, define um nome de arquivo fictício
     if (isEditing && initialData.image && !selectedFileName) {
       const hasBase64Prefix = initialData.image.startsWith("data:image");
+      const isUrl = initialData.image.startsWith("http");
+
       if (hasBase64Prefix) {
-        setSelectedFileName("imagem.png");
+        setSelectedFileName("imagem_atual.png");
+      } else if (isUrl) {
+        // Extrai o nome do arquivo da URL
+        const urlParts = initialData.image.split("/");
+        const fileName =
+          urlParts[urlParts.length - 1].split("?")[0] || "imagem_atual.png";
+        setSelectedFileName(fileName);
       }
     }
 
@@ -112,6 +147,8 @@ const ProductForm: React.FC<ProductFormProps> = ({
       case "name":
         if (!value || !value.trim()) {
           errorMessage = "Campo obrigatório";
+        } else if (value.trim().length < 3) {
+          errorMessage = "Nome deve ter pelo menos 3 caracteres";
         }
         break;
       case "price":
@@ -129,12 +166,28 @@ const ProductForm: React.FC<ProductFormProps> = ({
     }
 
     setErrors((prev) => ({ ...prev, [name]: errorMessage }));
+    return errorMessage;
   };
 
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
+    setImageError("");
+
     if (files && files.length > 0) {
       const file = files[0];
+
+      // Verifica o tamanho do arquivo (máximo 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        setImageError("A imagem deve ter no máximo 5MB");
+        return;
+      }
+
+      // Verifica o tipo do arquivo
+      if (!file.type.startsWith("image/")) {
+        setImageError("O arquivo selecionado não é uma imagem válida");
+        return;
+      }
+
       setImageFile(file); // salva o arquivo
       setSelectedFileName(file.name);
       setErrors((prev) => ({ ...prev, image: "" }));
@@ -144,7 +197,8 @@ const ProductForm: React.FC<ProductFormProps> = ({
         setImagePreview(base64);
       } catch (error) {
         console.error("Erro ao converter imagem:", error);
-        toast.error("Erro ao converter imagem:");
+        toast.error("Erro ao converter imagem");
+        setImageError("Erro ao processar a imagem");
       }
     }
   };
@@ -161,6 +215,8 @@ const ProductForm: React.FC<ProductFormProps> = ({
 
     if (!formData.name || !formData.name.trim()) {
       newErrors.name = "Campo obrigatório";
+    } else if (formData.name.trim().length < 3) {
+      newErrors.name = "Nome deve ter pelo menos 3 caracteres";
     }
 
     if (!isPositiveNumber(formData.price)) {
@@ -175,34 +231,71 @@ const ProductForm: React.FC<ProductFormProps> = ({
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     if (!validateForm()) {
+      toast.error("Verifique os campos do formulário");
       return;
     }
 
     setIsLoading(true);
 
     try {
-      let productData = { ...formData };
-
-      // Se tiver uma nova imagem selecionada, converte para base64
-      if (imageFile) {
-        const base64Image = await imageToBase64(imageFile);
-        productData.image = base64Image;
-      }
+      // Prepara os dados para envio
+      const productData = {
+        ...formData,
+        price: parseFloat(formData.price.toString()),
+        image: imagePreview || undefined,
+      };
 
       await onSubmit(productData);
-    } catch (error) {
-      console.error("Erro ao processar formulário:", error);
-      toast.error(
-        "Ocorreu um erro ao processar o formulário. Tente novamente."
+
+      if (!isEditing) {
+        // Limpa o formulário após sucesso se estiver criando um novo produto
+        setFormData({
+          name: "",
+          price: "",
+          description: "",
+          brandId: "",
+          image: "",
+        });
+        setImageFile(null);
+        setImagePreview(undefined);
+        setSelectedFileName("");
+        setTouchedFields({});
+      }
+
+      toast.success(
+        isEditing
+          ? "Produto atualizado com sucesso!"
+          : "Produto cadastrado com sucesso!"
       );
+    } catch (error) {
+      console.error("Erro ao salvar produto:", error);
+      toast.error("Erro ao salvar produto. Tente novamente.");
     } finally {
       setIsLoading(false);
     }
   };
+
+  const handleRemoveImage = () => {
+    setImageFile(null);
+    setImagePreview(undefined);
+    setSelectedFileName("");
+  };
+
+  // Se houver erro ao carregar as marcas
+  if (loadError.hasError) {
+    return (
+      <ErrorPage
+        message={
+          loadError.message || "Erro ao carregar dados. Tente novamente."
+        }
+        retry={() => window.location.reload()}
+      />
+    );
+  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -214,8 +307,9 @@ const ProductForm: React.FC<ProductFormProps> = ({
           value={formData.name}
           onChange={handleChange}
           onBlur={handleBlur}
+          placeholder="Digite o nome do produto"
+          disabled={isLoading || isSubmitting}
           error={errors.name}
-          placeholder="Ex: Coca-Cola 2L"
           required
         />
 
@@ -224,11 +318,12 @@ const ProductForm: React.FC<ProductFormProps> = ({
           name="price"
           label="Preço (R$)"
           type="text"
-          value={formData.price.toString()}
+          value={formData.price}
           onChange={handlePriceChange}
           onBlur={handleBlur}
+          placeholder="0.00"
+          disabled={isLoading || isSubmitting}
           error={errors.price}
-          placeholder="Ex: 9.99"
           required
         />
       </div>
@@ -236,9 +331,9 @@ const ProductForm: React.FC<ProductFormProps> = ({
       <div className="mb-4">
         <label
           htmlFor="brandId"
-          className="block text-[var(--gray-dark-more)] font-medium mb-1"
+          className="block text-[var(--blue-dark)] font-medium mb-1"
         >
-          Marca
+          Marca <span className="text-red-500">*</span>
         </label>
         <select
           id="brandId"
@@ -246,9 +341,11 @@ const ProductForm: React.FC<ProductFormProps> = ({
           value={formData.brandId}
           onChange={handleChange}
           onBlur={handleBlur}
+          disabled={isLoading || loadingBrands || isSubmitting}
           className={`border border-[var(--gray-border)] rounded-md px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-[var(--blue-pastel)] text-[var(--blue-dark)] ${
             errors.brandId && "border border-[var(--red)]"
           }`}
+          required
         >
           <option value="">Selecione uma marca</option>
           {brands.map((brand) => (
@@ -258,14 +355,19 @@ const ProductForm: React.FC<ProductFormProps> = ({
           ))}
         </select>
         {errors.brandId && (
-          <p className="text-[var(--red)] text-sm mt-1">{errors.brandId}</p>
+          <span className="text-[var(--red)] text-sm mt-1">
+            {errors.brandId}
+          </span>
+        )}
+        {loadingBrands && (
+          <span className="text-gray-500 text-sm">Carregando marcas...</span>
         )}
       </div>
 
       <div className="mb-4">
         <label
           htmlFor="description"
-          className="block text-[var(--gray-dark-more)] font-medium mb-1"
+          className="block text-[var(--blue-dark)] font-medium mb-1"
         >
           Descrição
         </label>
@@ -283,71 +385,91 @@ const ProductForm: React.FC<ProductFormProps> = ({
       <div className="mb-4">
         <label
           htmlFor="image"
-          className="block text-[var(--gray-dark-more)] font-medium mb-1"
+          className="block text-[var(--blue-dark)] font-medium mb-1"
         >
           Imagem do Produto
         </label>
-        <div className={`border rounded-md px-3 py-2 w-full flex items-center`}>
-          <div className="flex-grow flex items-center">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="mr-2 text-[var(--gray-dark-more)]"
-            >
-              <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48" />
-            </svg>
-            <span className="text-[var(--gray-dark-more)] truncate">
-              {selectedFileName || "Nenhum arquivo selecionado"}
-            </span>
-          </div>
-          <label
-            htmlFor="image"
-            className="cursor-pointer text-xs md:text-lg px-2 md:px-4 py-1 bg-[var(--blue-pastel)] text-white rounded-md hover:bg-[var(--blue)] transition-colors ml-2 md:ml-0 text-center"
-          >
-            Escolher arquivo
-          </label>
-          <input
-            id="image"
-            name="image"
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={handleImageChange}
-            onBlur={handleBlur}
-          />
-        </div>
 
-        {imagePreview && (
-          <div className="mt-3">
-            <p className="text-sm text-[var(--gray-dark-more)] mb-2">
-              Pré-visualização:
-            </p>
-            <img
-              src={imagePreview}
-              alt="Pré-visualização"
-              className="w-40 h-40 object-cover border border-[var(--gray-border)] rounded-md"
+        <div className="mt-2 flex flex-col space-y-4">
+          {/* Preview da imagem */}
+          {imagePreview && (
+            <div className="relative">
+              <button
+                type="button"
+                onClick={handleRemoveImage}
+                className="absolute top-2 left-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 cursor-pointer"
+                title="Remover imagem"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </button>
+              <img
+                src={imagePreview}
+                alt="Preview"
+                className="w-full max-w-[300px] h-auto object-contain border rounded"
+              />
+            </div>
+          )}
+
+          {/* Input de arquivo */}
+          <div className="flex flex-col space-y-2">
+            <div className="flex items-center space-x-2">
+              <label
+                htmlFor="image-upload"
+                className="cursor-pointer text-xs md:text-lg px-2 md:px-4 py-1 bg-[var(--blue-pastel)] text-white rounded-md hover:bg-[var(--blue)] transition-colors ml-2 md:ml-0 text-center"
+              >
+                {imagePreview ? "Trocar imagem" : "Selecionar imagem"}
+              </label>
+              {selectedFileName && (
+                <span className="text-sm text-gray-600 truncate max-w-xs">
+                  {selectedFileName}
+                </span>
+              )}
+            </div>
+
+            <input
+              id="image-upload"
+              name="image"
+              type="file"
+              accept="image/*"
+              onChange={handleImageChange}
+              disabled={isLoading || isSubmitting}
+              className="hidden"
             />
+
+            <p className="text-gray-500 text-xs">
+              Formatos aceitos: JPG, PNG, GIF | Tamanho máximo: 5MB
+            </p>
           </div>
-        )}
+        </div>
       </div>
 
-      <div className="flex justify-end space-x-3">
+      <div className="flex justify-end space-x-4 mt-8">
         <Button
           type="button"
-          variant="outline"
+          variant="secondary"
           onClick={() => window.history.back()}
+          disabled={isLoading || isSubmitting}
         >
           Cancelar
         </Button>
-        <Button type="submit" variant="primary" isLoading={isLoading}>
-          {isEditing ? "Salvar Alterações" : "Cadastrar Produto"}
+        <Button
+          type="submit"
+          variant="primary"
+          disabled={isLoading || isSubmitting}
+          isLoading={isLoading || isSubmitting}
+        >
+          {isEditing ? "Atualizar" : "Cadastrar"} Produto
         </Button>
       </div>
     </form>
