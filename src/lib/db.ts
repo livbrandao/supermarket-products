@@ -1,8 +1,8 @@
 import { Brand, Product } from "./types";
 import { v4 as uuidv4 } from "uuid";
 
-// Mock do banco de dados local
-let brands: Brand[] = [
+// Dados para marcas e produtos
+const initialBrands: Brand[] = [
   { id: uuidv4(), name: "Coca-Cola" },
   { id: uuidv4(), name: "Nestlé" },
   { id: uuidv4(), name: "P&G" },
@@ -10,42 +10,72 @@ let brands: Brand[] = [
   { id: uuidv4(), name: "Pepsico" },
 ];
 
-let products: Product[] = [
+const initialProducts: Product[] = [
   {
     id: uuidv4(),
     name: "Coca-Cola 2L",
     price: 9.99,
     description: "Refrigerante Coca-Cola garrafa 2 litros",
-    brandId: brands[0].id,
-    image: "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAYABgAAD/...",
+    brandId: initialBrands[0].id,
+    image:
+      "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAWAAAACuCAYAAAAI9Nc8AAAdDUlEQVR4nO3df3BT54Hu8a+NMFFAJJYTQaVgw6KkCnV6MQWxOI1pMcGzA0zclubW3YZ2fOem05tOyfayvWxnspkMNy1L2GzIJJ2J/3BnSBunjds6G5isszU0TjCDSLAvOERp7MWikQsCy4ACBxsh3T/k35JsQWyODc9nxoPl856j95Xxo1fv+55zss6ePRsnjXg8edOuXbv45JNP0u0iIiIZyk63IVX4fvDBBw",
   },
   {
     id: uuidv4(),
     name: "Nescau 400g",
     price: 8.5,
     description: "Achocolatado em pó Nescau lata 400g",
-    brandId: brands[1].id,
-    image: "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAYABgAAD/...",
+    brandId: initialBrands[1].id,
+    image: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJYAAACW...",
   },
   {
     id: uuidv4(),
     name: "Sabão em Pó OMO 1kg",
     price: 15.75,
     description: "Sabão em Pó OMO Multiação pacote 1kg",
-    brandId: brands[3].id,
-    image: "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAYABgAAD/...",
+    brandId: initialBrands[3].id,
+    image: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJYAAACW...",
   },
   {
     id: uuidv4(),
     name: "Doritos 140g",
     price: 12.99,
     description: "Salgadinho Doritos sabor queijo nacho 140g",
-    brandId: brands[4].id,
-    image: "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAYABgAAD/...",
+    brandId: initialBrands[4].id,
+    image: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJYAAACW...",
+  },
+  {
+    id: uuidv4(),
+    name: "Suco de Laranja Del Valle 1L",
+    price: 6.99,
+    description: "Suco de Laranja Del Valle 1L",
+    brandId: initialBrands[4].id,
+    image: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJYAAACW...",
   },
 ];
 
-// Exporta funções para interagir com o banco de dados
+// Função para carregar dados do localStorage
+const loadFromStorage = <T>(key: string, initialData: T): T => {
+  if (typeof window === "undefined") {
+    return initialData; // Retorna dados iniciais se não estiver no ambiente do navegador
+  }
+
+  const storedData = localStorage.getItem(key);
+  return storedData ? JSON.parse(storedData) : initialData;
+};
+
+// Função para salvar dados no localStorage
+const saveToStorage = <T>(key: string, data: T): void => {
+  if (typeof window !== "undefined") {
+    localStorage.setItem(key, JSON.stringify(data));
+  }
+};
+
+// Carrega dados do localStorage ou usa dados iniciais
+let brands: Brand[] = loadFromStorage("brands", initialBrands);
+let products: Product[] = loadFromStorage("products", initialProducts);
+
+// Exporta as funções para manipulação de produtos e marcas
 export const getAllBrands = (): Brand[] => {
   return [...brands];
 };
@@ -78,6 +108,7 @@ export const createProduct = (product: Omit<Product, "id">): Product => {
   }
 
   products.push(newProduct);
+  saveToStorage("products", products); // Salva no localStorage
   return newProduct;
 };
 
@@ -109,6 +140,7 @@ export const updateProduct = (
     ...product,
   };
 
+  saveToStorage("products", products); // Salva no localStorage
   return products[index];
 };
 
@@ -119,4 +151,5 @@ export const deleteProduct = (id: string): void => {
   }
 
   products.splice(index, 1);
+  saveToStorage("products", products); // Salva no localStorage
 };
