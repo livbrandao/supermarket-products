@@ -13,6 +13,7 @@ import Input from "./ui/Input";
 import Modal from "./ui/Modal";
 import Table from "./ui/Table";
 import ProductForm from "./ProductForm";
+import toast from "react-hot-toast";
 
 const ProductList: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
@@ -77,13 +78,13 @@ const ProductList: React.FC = () => {
       if (response.status === 200) {
         setIsEditModalOpen(false);
         loadProducts();
-        alert("Produto atualizado com sucesso!");
+        toast.success("Produto atualizado com sucesso!");
       } else {
-        alert(`Erro ao atualizar produto: ${response.message}`);
+        toast.error(`Erro ao atualizar produto: ${response.message}`);
       }
     } catch (error) {
       console.error("Erro ao atualizar produto:", error);
-      alert("Ocorreu um erro ao atualizar o produto. Tente novamente.");
+      toast.error("Ocorreu um erro ao atualizar o produto. Tente novamente.");
     }
   };
 
@@ -96,13 +97,13 @@ const ProductList: React.FC = () => {
       if (response.status === 200) {
         setIsDeleteModalOpen(false);
         loadProducts();
-        alert("Produto excluído com sucesso!");
+        toast.success("Produto excluído com sucesso!");
       } else {
-        alert(`Erro ao excluir produto: ${response.message}`);
+        toast.error(`Erro ao excluir produto: ${response.message}`);
       }
     } catch (error) {
       console.error("Erro ao excluir produto:", error);
-      alert("Ocorreu um erro ao excluir o produto. Tente novamente.");
+      toast.error("Ocorreu um erro ao excluir o produto. Tente novamente.");
     }
   };
 
