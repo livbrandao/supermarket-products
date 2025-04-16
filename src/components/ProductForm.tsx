@@ -52,8 +52,16 @@ const ProductForm: React.FC<ProductFormProps> = ({
       }
     };
 
+    // Quando estiver editando, define um nome de arquivo fictício
+    if (isEditing && initialData.image && !selectedFileName) {
+      const hasBase64Prefix = initialData.image.startsWith("data:image");
+      if (hasBase64Prefix) {
+        setSelectedFileName("imagem.png");
+      }
+    }
+
     loadBrands();
-  }, []);
+  }, [isEditing, initialData.image, selectedFileName]);
 
   const handleChange = (
     e: React.ChangeEvent<

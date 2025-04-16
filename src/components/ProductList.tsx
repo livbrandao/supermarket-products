@@ -126,6 +126,8 @@ const ProductList: React.FC = () => {
               src={product.image}
               alt={product.name}
               className="w-full h-full object-cover rounded-md"
+              width={64}
+              height={64}
             />
           ) : (
             <div className="w-16 h-16 bg-gray-200 rounded-md flex items-center justify-center text-gray-400">
