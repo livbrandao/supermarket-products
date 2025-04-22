@@ -1,56 +1,125 @@
 import { Brand, Product } from "./types";
 import { v4 as uuidv4 } from "uuid";
 
-// Dados para marcas e produtos
+// Cria IDs fixos para marcas
+const brandIds = {
+  apple: uuidv4(),
+  samsung: uuidv4(),
+  nike: uuidv4(),
+  adidas: uuidv4(),
+  nestle: uuidv4(),
+  cocaCola: uuidv4(),
+  sony: uuidv4(),
+  microsoft: uuidv4(),
+  dell: uuidv4(),
+  hp: uuidv4(),
+};
+
+// Dados iniciais para marcas
 const initialBrands: Brand[] = [
-  { id: uuidv4(), name: "Coca-Cola" },
-  { id: uuidv4(), name: "Nestlé" },
-  { id: uuidv4(), name: "P&G" },
-  { id: uuidv4(), name: "Unilever" },
-  { id: uuidv4(), name: "Pepsico" },
+  { id: brandIds.apple, name: "Apple" },
+  { id: brandIds.samsung, name: "Samsung" },
+  { id: brandIds.nike, name: "Nike" },
+  { id: brandIds.adidas, name: "Adidas" },
+  { id: brandIds.nestle, name: "Nestlé" },
+  { id: brandIds.cocaCola, name: "Coca-Cola" },
+  { id: brandIds.sony, name: "Sony" },
+  { id: brandIds.microsoft, name: "Microsoft" },
+  { id: brandIds.dell, name: "Dell" },
+  { id: brandIds.hp, name: "HP" },
 ];
 
+// Dados iniciais para produtos
 const initialProducts: Product[] = [
   {
     id: uuidv4(),
-    name: "Coca-Cola 2L",
-    price: 9.99,
-    description: "Refrigerante Coca-Cola garrafa 2 litros",
-    brandId: initialBrands[0].id,
-    image:
-      "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAWAAAACuCAYAAAAI9Nc8AAAdDUlEQVR4nO3df3BT54Hu8a+NMFFAJJYTQaVgw6KkCnV6MQWxOI1pMcGzA0zclubW3YZ2fOem05tOyfayvWxnspkMNy1L2GzIJJ2J/3BnSBunjds6G5isszU0TjCDSLAvOERp7MWikQsCy4ACBxsh3T/k35JsQWyODc9nxoPl856j95Xxo1fv+55zss6ePRsnjXg8edOuXbv45JNP0u0iIiIZyk63IVX4fvDBBw",
+    name: "iPhone 15 Pro",
+    price: 999.99,
+    description: "Smartphone Apple com processador A17 Pro e câmera de 48MP",
+    brand: initialBrands.find((b) => b.id === brandIds.apple)!,
+    brandId: brandIds.apple,
+    image: "https://placehold.co/400x400/eee/fff?text=iPhone+15",
   },
   {
     id: uuidv4(),
-    name: "Nescau 400g",
-    price: 8.5,
-    description: "Achocolatado em pó Nescau lata 400g",
-    brandId: initialBrands[1].id,
-    image: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJYAAACW...",
+    name: "Galaxy S24 Ultra",
+    price: 1199.99,
+    description: "Smartphone Samsung com tela Dynamic AMOLED 2X e S Pen",
+    brand: initialBrands.find((b) => b.id === brandIds.samsung)!,
+    brandId: brandIds.samsung,
+    image: "https://placehold.co/400x400/eee/fff?text=Galaxy+S24",
   },
   {
     id: uuidv4(),
-    name: "Sabão em Pó OMO 1kg",
-    price: 15.75,
-    description: "Sabão em Pó OMO Multiação pacote 1kg",
-    brandId: initialBrands[3].id,
-    image: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJYAAACW...",
+    name: "Air Jordan 1",
+    price: 189.99,
+    description: "Tênis Nike Air Jordan 1 High OG para basquete",
+    brand: initialBrands.find((b) => b.id === brandIds.nike)!,
+    brandId: brandIds.nike,
+    image: "https://placehold.co/400x400/eee/fff?text=Air+Jordan",
   },
   {
     id: uuidv4(),
-    name: "Doritos 140g",
+    name: "Ultraboost 24",
+    price: 220.0,
+    description: "Tênis de corrida Adidas com tecnologia Boost",
+    brand: initialBrands.find((b) => b.id === brandIds.adidas)!,
+    brandId: brandIds.adidas,
+    image: "https://placehold.co/400x400/eee/fff?text=Ultraboost",
+  },
+  {
+    id: uuidv4(),
+    name: "Nescafé Gold",
     price: 12.99,
-    description: "Salgadinho Doritos sabor queijo nacho 140g",
-    brandId: initialBrands[4].id,
-    image: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJYAAACW...",
+    description: "Café solúvel premium 100g",
+    brand: initialBrands.find((b) => b.id === brandIds.nestle)!,
+    brandId: brandIds.nestle,
+    image: "https://placehold.co/400x400/eee/fff?text=Nescafé",
   },
   {
     id: uuidv4(),
-    name: "Suco de Laranja Del Valle 1L",
-    price: 6.99,
-    description: "Suco de Laranja Del Valle 1L",
-    brandId: initialBrands[4].id,
-    image: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJYAAACW...",
+    name: "Coca-Cola Zero 2L",
+    price: 8.99,
+    description: "Refrigerante zero açúcar garrafa 2 litros",
+    brand: initialBrands.find((b) => b.id === brandIds.cocaCola)!,
+    brandId: brandIds.cocaCola,
+    image: "https://placehold.co/400x400/eee/fff?text=Coca+Zero",
+  },
+  {
+    id: uuidv4(),
+    name: "PlayStation 5",
+    price: 499.99,
+    description: "Console Sony PlayStation 5 com leitor de disco",
+    brand: initialBrands.find((b) => b.id === brandIds.sony)!,
+    brandId: brandIds.sony,
+    image: "https://placehold.co/400x400/eee/fff?text=PS5",
+  },
+  {
+    id: uuidv4(),
+    name: "Xbox Series X",
+    price: 499.99,
+    description: "Console Microsoft Xbox Series X 1TB",
+    brand: initialBrands.find((b) => b.id === brandIds.microsoft)!,
+    brandId: brandIds.microsoft,
+    image: "https://placehold.co/400x400/eee/fff?text=Xbox",
+  },
+  {
+    id: uuidv4(),
+    name: "XPS 13",
+    price: 1299.99,
+    description: "Notebook Dell XPS 13 com processador Intel Core i7",
+    brand: initialBrands.find((b) => b.id === brandIds.dell)!,
+    brandId: brandIds.dell,
+    image: "https://placehold.co/400x400/eee/fff?text=XPS+13",
+  },
+  {
+    id: uuidv4(),
+    name: "Spectre x360",
+    price: 1399.99,
+    description: "Notebook conversível HP com tela touchscreen OLED",
+    brand: initialBrands.find((b) => b.id === brandIds.hp)!,
+    brandId: brandIds.hp,
+    image: "https://placehold.co/400x400/eee/fff?text=Spectre",
   },
 ];
 
@@ -75,6 +144,33 @@ const saveToStorage = <T>(key: string, data: T): void => {
 let brands: Brand[] = loadFromStorage("brands", initialBrands);
 let products: Product[] = loadFromStorage("products", initialProducts);
 
+// Verifica se os produtos existentes têm marcas válidas
+const validateProductBrands = () => {
+  let hasInvalidBrands = false;
+
+  // Obtém todos os IDs de marcas existentes
+  const brandIds = brands.map((brand) => brand.id);
+
+  products = products.map((product) => {
+    // Verifica se a marca do produto é válida
+    if (!product.brand || !brandIds.includes(product.brand.id)) {
+      hasInvalidBrands = true;
+      // Atribui a primeira marca como padrão caso a marca não seja válida
+      return { ...product, brand: brands[0], brandId: brands[0].id };
+    }
+    return product;
+  });
+
+  // Se houve correções, salva os produtos atualizados
+  if (hasInvalidBrands) {
+    saveToStorage("products", products);
+    console.log("Produtos com marcas inválidas foram corrigidos");
+  }
+};
+
+// Chama a validação ao inicializar
+validateProductBrands();
+
 // Função para comprimir dados base64 de imagens
 const compressImageData = (base64Data: string): string => {
   // Se já for uma URL, não comprime
@@ -88,6 +184,29 @@ const compressImageData = (base64Data: string): string => {
   }
 
   return base64Data;
+};
+
+// Função para encontrar ou criar uma marca
+const findOrCreateBrand = (brandName: string): Brand => {
+  // Procura por marcas com o mesmo nome (case insensitive)
+  const existingBrand = brands.find(
+    (b) => b.name.toLowerCase() === brandName.toLowerCase()
+  );
+
+  if (existingBrand) {
+    return existingBrand;
+  }
+
+  // Se não encontrar, cria uma nova marca
+  const newBrand: Brand = {
+    id: uuidv4(),
+    name: brandName.trim(),
+  };
+
+  brands.push(newBrand);
+  saveToStorage("brands", brands);
+
+  return newBrand;
 };
 
 // Exporta as funções para manipulação de produtos e marcas
@@ -108,16 +227,23 @@ export const getBrandById = (id: string): Brand | undefined => {
 };
 
 export const createProduct = (product: Omit<Product, "id">): Product => {
+  // Processa a marca - encontra ou cria uma nova
+  const brand = findOrCreateBrand(product.brand.name);
+
   const newProduct = {
     ...product,
     id: uuidv4(),
+    brand,
+    brandId: brand.id,
     // Comprime a imagem se existir
     image: product.image ? compressImageData(product.image) : undefined,
   };
 
-  // Verifica unicidade
+  // Verifica unicidade de [name, brandId]
   const existingProduct = products.find(
-    (p) => p.name === newProduct.name && p.brandId === newProduct.brandId
+    (p) =>
+      p.name.toLowerCase() === newProduct.name.toLowerCase() &&
+      p.brandId === newProduct.brandId
   );
 
   if (existingProduct) {
@@ -138,26 +264,36 @@ export const updateProduct = (
     throw new Error("Produto não encontrado");
   }
 
-  // Verifica unicidade se estiver atualizando esses campos
-  if (product.name || product.brandId) {
-    const newName = product.name || products[index].name;
-    const newBrandId = product.brandId || products[index].brandId;
+  const updatedProduct = { ...products[index] };
 
-    const existingProduct = products.find(
-      (p) => p.id !== id && p.name === newName && p.brandId === newBrandId
+  // Se estiver atualizando o nome da marca
+  if (product.brand?.name) {
+    const brand = findOrCreateBrand(product.brand.name);
+    updatedProduct.brand = brand;
+    updatedProduct.brandId = brand.id;
+  }
+
+  // Atualiza outros campos
+  if (product.name !== undefined) updatedProduct.name = product.name;
+  if (product.price !== undefined) updatedProduct.price = product.price;
+  if (product.description !== undefined)
+    updatedProduct.description = product.description;
+
+  // Verifica unicidade de [name, brandId]
+  if (product.name || product.brand?.name) {
+    const duplicateProduct = products.find(
+      (p) =>
+        p.id !== id &&
+        p.name.toLowerCase() === updatedProduct.name.toLowerCase() &&
+        p.brandId === updatedProduct.brandId
     );
 
-    if (existingProduct) {
+    if (duplicateProduct) {
       throw new Error("Já existe um produto com este nome para esta marca");
     }
   }
 
   // Comprime a imagem se estiver sendo atualizada
-  const updatedProduct = {
-    ...products[index],
-    ...product,
-  };
-
   if (product.image) {
     updatedProduct.image = compressImageData(product.image);
   }

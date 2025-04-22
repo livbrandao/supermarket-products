@@ -179,17 +179,23 @@ const ProductList: React.FC = () => {
     {
       header: "Nome",
       accessor: "name" as keyof Product,
-      width: "20%",
+      width: "15%",
+    },
+    {
+      header: "Marca",
+      accessor: (product: Product) =>
+        product.brand?.name || "Marca não informada",
+      width: "15%",
     },
     {
       header: "Preço",
       accessor: (product: Product) => formatPrice(product.price),
-      width: "15%",
+      width: "10%",
     },
     {
       header: "Descrição",
       accessor: (product: Product) => product.description || "-",
-      width: "35%",
+      width: "30%",
     },
     {
       header: "Ações",
@@ -251,12 +257,26 @@ const ProductList: React.FC = () => {
         emptyMessage="Nenhum produto encontrado"
       />
 
-      {!isLoading && (
+      {!isLoading && products.length > 0 && (
         <Pagination
           currentPage={filter.page}
           totalPages={totalPages}
           onPageChange={handlePageChange}
         />
+      )}
+
+      {searchTerm && products.length === 0 && !isLoading && (
+        <div className="py-8 text-center">
+          <p className="text-gray-500">
+            Nenhum produto encontrado para "{searchTerm}"
+          </p>
+          <button
+            onClick={() => handleSearch("")}
+            className="text-blue-500 underline mt-2"
+          >
+            Limpar busca
+          </button>
+        </div>
       )}
 
       {selectedProduct && (

@@ -33,7 +33,7 @@ const ImageWithFallback: React.FC<ImageWithFallbackProps> = ({
           Imagem não disponível
         </p>
       ) : (
-        <Image
+        <img
           src={imgSrc}
           alt={alt}
           width={width}

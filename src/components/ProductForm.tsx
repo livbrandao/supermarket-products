@@ -14,37 +14,52 @@ interface ProductFormProps {
     name: string;
     price: number;
     description?: string;
-    brandId: string;
+    brand: Brand;
+    brandId?: string;
     image?: string;
   };
   onSubmit: (data: any) => void;
   isEditing?: boolean;
   isSubmitting?: boolean;
+  brandOptions?: Brand[];
 }
+
+const defaultFormData = {
+  name: "",
+  price: 0,
+  description: "",
+  brand: { id: "", name: "" },
+  brandId: "",
+  image: "",
+};
+
 const ProductForm: React.FC<ProductFormProps> = ({
-  initialData = {
-    name: "",
-    price: "",
-    description: "",
-    brandId: "",
-    image: "",
-  },
+  initialData,
   onSubmit,
   isEditing = false,
   isSubmitting = false,
+  brandOptions,
 }) => {
-  const [formData, setFormData] = useState(initialData);
-  const [brands, setBrands] = useState<Brand[]>([]);
+  const filledInitialData = {
+    ...defaultFormData,
+    ...initialData,
+    description: initialData?.description ?? "",
+    image: initialData?.image ?? "",
+    brandId: initialData?.brand?.id ?? "",
+  };
+
+  const [formData, setFormData] =
+    useState<typeof defaultFormData>(filledInitialData);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [loadingBrands, setLoadingBrands] = useState(true);
-  const [loadError, setLoadError] = useState<{
-    hasError: boolean;
-    message?: string;
-  }>({ hasError: false });
+  const [loadingBrands, setLoadingBrands] = useState(false);
+  const [loadError, setLoadError] = useState({
+    hasError: false as boolean,
+    message: "",
+  });
   const [imagePreview, setImagePreview] = useState<string | undefined>(
-    initialData.image
+    initialData?.image
   );
   const [touchedFields, setTouchedFields] = useState<Record<string, boolean>>(
     {}
@@ -53,34 +68,8 @@ const ProductForm: React.FC<ProductFormProps> = ({
   const [imageError, setImageError] = useState<string>("");
 
   useEffect(() => {
-    const loadBrands = async () => {
-      setLoadingBrands(true);
-      setLoadError({ hasError: false });
-
-      try {
-        const response = await fetchBrands();
-        if (response.status === 200) {
-          setBrands(response.data);
-        } else {
-          console.error("Erro ao buscar marcas:", response.message);
-          setLoadError({
-            hasError: true,
-            message: response.message || "Erro ao carregar marcas",
-          });
-        }
-      } catch (error) {
-        console.error("Erro ao buscar marcas:", error);
-        setLoadError({
-          hasError: true,
-          message: "Erro de conexão. Verifique sua internet.",
-        });
-      } finally {
-        setLoadingBrands(false);
-      }
-    };
-
     // Quando estiver editando, define um nome de arquivo fictício
-    if (isEditing && initialData.image && !selectedFileName) {
+    if (isEditing && initialData?.image && !selectedFileName) {
       const hasBase64Prefix = initialData.image.startsWith("data:image");
       const isUrl = initialData.image.startsWith("http");
 
@@ -94,9 +83,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
         setSelectedFileName(fileName);
       }
     }
-
-    loadBrands();
-  }, [isEditing, initialData.image, selectedFileName]);
+  }, [isEditing, initialData?.image, selectedFileName]);
 
   const handleChange = (
     e: React.ChangeEvent<
@@ -104,7 +91,16 @@ const ProductForm: React.FC<ProductFormProps> = ({
     >
   ) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+
+    if (name === "brandName") {
+      setFormData((prev) => ({
+        ...prev!,
+        brand: { ...prev!.brand, name: value },
+      }));
+    } else {
+      setFormData((prev) => ({ ...prev!, [name]: value }));
+    }
+
     validateField(name, value);
   };
 
@@ -120,11 +116,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
 
     const parsedValue = parseFloat(formattedValue) || 0;
 
-    setFormData((prev) => ({
-      ...prev,
-      price: parsedValue,
-    }));
-
+    setFormData((prev) => ({ ...prev!, price: parsedValue }));
     validateField(name, parsedValue);
   };
 
@@ -135,7 +127,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
   ) => {
     const { name } = e.target;
     setTouchedFields((prev) => ({ ...prev, [name]: true }));
-    validateField(name, formData[name as keyof typeof formData]);
+    if (formData) validateField(name, formData[name as keyof typeof formData]);
   };
 
   const validateField = (name: string, value: any) => {
@@ -145,21 +137,16 @@ const ProductForm: React.FC<ProductFormProps> = ({
 
     switch (name) {
       case "name":
-        if (!value || !value.trim()) {
-          errorMessage = "Campo obrigatório";
-        } else if (value.trim().length < 3) {
+        if (!value || !value.trim()) errorMessage = "Campo obrigatório";
+        else if (value.trim().length < 3)
           errorMessage = "Nome deve ter pelo menos 3 caracteres";
-        }
         break;
       case "price":
-        if (!isPositiveNumber(value)) {
+        if (!isPositiveNumber(value))
           errorMessage = "Preço deve ser um número positivo";
-        }
         break;
-      case "brandId":
-        if (!value) {
-          errorMessage = "Campo obrigatório";
-        }
+      case "brandName":
+        if (!value || !value.trim()) errorMessage = "Campo obrigatório";
         break;
       default:
         break;
@@ -169,63 +156,26 @@ const ProductForm: React.FC<ProductFormProps> = ({
     return errorMessage;
   };
 
-  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    setImageError("");
-
-    if (files && files.length > 0) {
-      const file = files[0];
-
-      // Verifica o tamanho do arquivo (máximo 5MB)
-      if (file.size > 5 * 1024 * 1024) {
-        setImageError("A imagem deve ter no máximo 5MB");
-        return;
-      }
-
-      // Verifica o tipo do arquivo
-      if (!file.type.startsWith("image/")) {
-        setImageError("O arquivo selecionado não é uma imagem válida");
-        return;
-      }
-
-      setImageFile(file); // salva o arquivo
-      setSelectedFileName(file.name);
-      setErrors((prev) => ({ ...prev, image: "" }));
-
-      try {
-        const base64 = await imageToBase64(file);
-        setImagePreview(base64);
-      } catch (error) {
-        console.error("Erro ao converter imagem:", error);
-        toast.error("Erro ao converter imagem");
-        setImageError("Erro ao processar a imagem");
-      }
-    }
-  };
-
   const validateForm = () => {
-    const fields = ["name", "price", "brandId"];
-    const newTouchedFields = { ...touchedFields };
-    fields.forEach((field) => {
-      newTouchedFields[field] = true;
-    });
+    const newErrors: Record<string, string> = {};
+    const newTouchedFields = {
+      ...touchedFields,
+      name: true,
+      price: true,
+      brandName: true,
+    };
     setTouchedFields(newTouchedFields);
 
-    const newErrors: Record<string, string> = {};
-
-    if (!formData.name || !formData.name.trim()) {
+    if (!formData.name || !formData.name.trim())
       newErrors.name = "Campo obrigatório";
-    } else if (formData.name.trim().length < 3) {
+    else if (formData.name.trim().length < 3)
       newErrors.name = "Nome deve ter pelo menos 3 caracteres";
-    }
 
-    if (!isPositiveNumber(formData.price)) {
+    if (!isPositiveNumber(formData.price))
       newErrors.price = "Preço deve ser um número positivo";
-    }
 
-    if (!formData.brandId) {
-      newErrors.brandId = "Campo obrigatório";
-    }
+    if (!formData.brand.name || !formData.brand.name.trim())
+      newErrors.brandName = "Campo obrigatório";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -239,13 +189,27 @@ const ProductForm: React.FC<ProductFormProps> = ({
       return;
     }
 
+    // Verificar se uma marca foi preenchida
+    if (!formData.brand.name.trim()) {
+      toast.error("Por favor, digite o nome da marca.");
+      return;
+    }
+
     setIsLoading(true);
 
     try {
-      // Prepara os dados para envio
+      // Verificação do preço
+      const price = parseFloat(formData.price.toString());
+      if (isNaN(price)) {
+        toast.error("Preço inválido.");
+        setIsLoading(false);
+        return;
+      }
+
+      // Preparar dados para envio
       const productData = {
         ...formData,
-        price: parseFloat(formData.price.toString()),
+        price,
         image: imagePreview || undefined,
       };
 
@@ -255,8 +219,9 @@ const ProductForm: React.FC<ProductFormProps> = ({
         // Limpa o formulário após sucesso se estiver criando um novo produto
         setFormData({
           name: "",
-          price: "",
+          price: 0,
           description: "",
+          brand: { id: "", name: "" },
           brandId: "",
           image: "",
         });
@@ -271,11 +236,44 @@ const ProductForm: React.FC<ProductFormProps> = ({
           ? "Produto atualizado com sucesso!"
           : "Produto cadastrado com sucesso!"
       );
-    } catch (error) {
+    } catch (error: any) {
+      if (error.response) {
+        toast.error(`Erro ao salvar produto: ${error.response.data.message}`);
+      } else {
+        toast.error("Erro ao salvar produto. Tente novamente.");
+      }
       console.error("Erro ao salvar produto:", error);
-      toast.error("Erro ao salvar produto. Tente novamente.");
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    setImageError("");
+
+    if (files && files.length > 0) {
+      const file = files[0];
+      if (file.size > 5 * 1024 * 1024) {
+        setImageError("A imagem deve ter no máximo 5MB");
+        return;
+      }
+      if (!file.type.startsWith("image/")) {
+        setImageError("O arquivo selecionado não é uma imagem válida");
+        return;
+      }
+
+      setImageFile(file);
+      setSelectedFileName(file.name);
+
+      try {
+        const base64 = await imageToBase64(file);
+        setImagePreview(base64);
+      } catch (error) {
+        console.error("Erro ao converter imagem:", error);
+        toast.error("Erro ao converter imagem");
+        setImageError("Erro ao processar a imagem");
+      }
     }
   };
 
@@ -289,9 +287,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
   if (loadError.hasError) {
     return (
       <ErrorPage
-        message={
-          loadError.message || "Erro ao carregar dados. Tente novamente."
-        }
+        message={loadError.message}
         retry={() => window.location.reload()}
       />
     );
@@ -329,39 +325,18 @@ const ProductForm: React.FC<ProductFormProps> = ({
       </div>
 
       <div className="mb-4">
-        <label
-          htmlFor="brandId"
-          className="block text-[var(--blue-dark)] font-medium mb-1"
-        >
-          Marca <span className="text-red-500">*</span>
-        </label>
-        <select
-          id="brandId"
-          name="brandId"
-          value={formData.brandId}
+        <Input
+          id="brandName"
+          name="brandName"
+          label="Marca"
+          value={formData.brand.name}
           onChange={handleChange}
           onBlur={handleBlur}
-          disabled={isLoading || loadingBrands || isSubmitting}
-          className={`border border-[var(--gray-border)] rounded-md px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-[var(--blue-pastel)] text-[var(--blue-dark)] ${
-            errors.brandId && "border border-[var(--red)]"
-          }`}
+          placeholder="Digite o nome da marca"
+          disabled={isLoading || isSubmitting}
+          error={errors.brandName}
           required
-        >
-          <option value="">Selecione uma marca</option>
-          {brands.map((brand) => (
-            <option key={brand.id} value={brand.id}>
-              {brand.name}
-            </option>
-          ))}
-        </select>
-        {errors.brandId && (
-          <span className="text-[var(--red)] text-sm mt-1">
-            {errors.brandId}
-          </span>
-        )}
-        {loadingBrands && (
-          <span className="text-gray-500 text-sm">Carregando marcas...</span>
-        )}
+        />
       </div>
 
       <div className="mb-4">
