@@ -23,9 +23,28 @@ export const isUUID = (id: string) => {
 // Converte imagem para base64
 export const imageToBase64 = (file: File): Promise<string> => {
   return new Promise((resolve, reject) => {
+    // Verificação de tamanho
+    if (file.size > 5 * 1024 * 1024) {
+      reject(new Error("A imagem não pode ter mais de 5MB"));
+      return;
+    }
+
+    // Verificação de tipo
+    if (!file.type.startsWith("image/")) {
+      reject(new Error("O arquivo deve ser uma imagem válida"));
+      return;
+    }
+
     const reader = new FileReader();
     reader.readAsDataURL(file);
-    reader.onload = () => resolve(reader.result as string);
+    reader.onload = () => {
+      // Verificação adicional para garantir que leu corretamente
+      if (typeof reader.result !== "string") {
+        reject(new Error("Falha na leitura da imagem"));
+        return;
+      }
+      resolve(reader.result);
+    };
     reader.onerror = (error) => reject(error);
   });
 };
