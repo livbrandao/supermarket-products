@@ -317,7 +317,6 @@ const ProductList: React.FC = () => {
             isOpen={isEditModalOpen}
             onClose={() => !isActionLoading && setIsEditModalOpen(false)}
             title="Editar Produto"
-            maxWidth="max-w-4xl"
           >
             <ProductForm
               initialData={selectedProduct}

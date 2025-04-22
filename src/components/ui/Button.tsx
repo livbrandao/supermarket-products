@@ -28,7 +28,7 @@ const Button: React.FC<ButtonProps> = ({
       disabled={disabled || isLoading}
       className={`${
         variantClasses[variant]
-      } cursor-pointer px-4 py-2 rounded-md font-medium transition-colors ${
+      } cursor-pointer text-xs md:text-base lg:text-lg px-4 py-2 rounded-md font-medium transition-colors ${
         isLoading ? "opacity-70 cursor-not-allowed" : ""
       } ${className}`}
       {...props}

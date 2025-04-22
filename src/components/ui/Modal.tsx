@@ -18,7 +18,6 @@ const Modal: React.FC<ModalProps> = ({
   title,
   children,
   footer,
-  maxWidth = "max-w-2xl",
 }) => {
   useEffect(() => {
     const handleEsc = (event: KeyboardEvent) => {
@@ -52,7 +51,7 @@ const Modal: React.FC<ModalProps> = ({
         </span>
 
         <div
-          className={`inline-block align-bottom bg-white rounded-lg text-left shadow-xl transform transition-all sm:my-8 sm:align-sub ${maxWidth} w-full border border-[var(--gray-border)]`}
+          className={`inline-block align-bottom bg-white rounded-lg text-left shadow-xl transform transition-all sm:my-8 sm:align-sub md:max-w-4xl border border-[var(--gray-border)]`}
           role="dialog"
           aria-modal="true"
           aria-labelledby="modal-headline"
