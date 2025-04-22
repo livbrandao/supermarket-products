@@ -173,14 +173,25 @@ validateProductBrands();
 
 // Função para comprimir dados base64 de imagens
 const compressImageData = (base64Data: string): string => {
+  // Se não houver dados, retorna placeholder
+  if (!base64Data) {
+    return `https://placehold.co/400x400/eee/fff?text=Sem+Imagem`;
+  }
+
   // Se já for uma URL, não comprime
   if (base64Data.startsWith("http")) {
     return base64Data;
   }
 
+  // Verifica se é um base64 válido
+  if (!base64Data.startsWith("data:image/")) {
+    console.warn("Formato de imagem inválido");
+    return `https://placehold.co/400x400/eee/fff?text=Formato+Inválido`;
+  }
+
   // Se for uma string base64 muito grande (> 1MB), converte para URL de placeholder
   if (base64Data.length > 1024 * 1024) {
-    return `https://placehold.co/400x400/eee/fff?text=Produto`;
+    return `https://placehold.co/400x400/eee/fff?text=Imagem+Grande`;
   }
 
   return base64Data;
