@@ -1,7 +1,7 @@
 import ErrorPage from "@/components/ErrorPage";
 
 export const metadata = {
-  title: "Página não encontrada | Supermercado Elfa",
+  title: "Página não encontrada | Supermercado",
   description: "A página que você está procurando não existe ou foi movida.",
 };
 

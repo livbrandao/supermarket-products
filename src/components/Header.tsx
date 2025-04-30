@@ -25,12 +25,7 @@ const Header: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
         <div className="flex justify-between items-center">
           <Link href="/" className="text-2xl font-bold">
-            <Image
-              src={"/grupoelfa-logo.png"}
-              alt={"Logo"}
-              width={80}
-              height={50}
-            />{" "}
+            <Image src={"/logo.png"} alt={"Logo"} width={80} height={50} />{" "}
           </Link>
 
           {/* Desktop Navigation */}

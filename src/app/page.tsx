@@ -6,7 +6,7 @@ export default function Home() {
     <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="text-center mb-10">
         <h1 className="text-4xl font-bold text-[var(--blue)] mb-4">
-          Bem-vindo ao Supermercado Elfa
+          Bem-vindo ao Supermercado
         </h1>
         <p className="text-lg text-[var(--gray-dark-more)] mb-6">
           Sistema de gerenciamento de produtos para o supermercado

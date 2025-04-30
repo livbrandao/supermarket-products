@@ -16,8 +16,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Supermercado Elfa - Sistema de Gerenciamento",
-  description: "Sistema de gerenciamento de produtos para o Supermercado Elfa",
+  title: "Supermercado - Sistema de Gerenciamento",
+  description: "Sistema de gerenciamento de produtos para o Supermercado",
 };
 
 export default function RootLayout({
@@ -38,7 +38,7 @@ export default function RootLayout({
         <footer className="bg-[var(--blue)] text-white py-4">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <p>
-              © {new Date().getFullYear()} Supermercado Elfa - Todos os direitos
+              © {new Date().getFullYear()} Supermercado - Todos os direitos
               reservados
             </p>
           </div>
